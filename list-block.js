@@ -1,23 +1,44 @@
-(function() {
-    function transformAccordionToGrid(section, columnCount, style) {
+(function () {
+    function cleanSVG(svgString) {
+        // Remove the xmlns attribute
+        svgString = svgString.replace(/\sxmlns="[^"]*"/g, '');
+
+        // Remove any remaining http:="" or www.w3.org="" attributes
+        svgString = svgString.replace(/\s(http:|www\.w3\.org)="[^"]*"/g, '');
+
+        // Remove any remaining id attributes
+        svgString = svgString.replace(/\sid="[^"]*"/g, '');
+
+        // Remove any &gt; at the end of the opening svg tag
+        svgString = svgString.replace(/<svg([^>]*)&gt;/, '<svg$1>');
+
+        return svgString;
+    }
+
+    function transformAccordionToListBlock(section, columnCount, style) {
         const accordion = section.querySelector('.accordion-items-container');
-        
+
         if (accordion) {
-            const gridContainer = document.createElement('div');
-            gridContainer.className = `grid-container accordion-list columns-${columnCount}`;
-            
+            const listBlockContainer = document.createElement('div');
+            listBlockContainer.className = `list-block-container accordion-list columns-${columnCount}`;
+            if (style === 'icons') {
+                listBlockContainer.classList.add('style-icons');
+            }
+
             const items = accordion.querySelectorAll('.accordion-item');
-            
+
             items.forEach((item) => {
-                const gridItem = document.createElement('div');
-                gridItem.className = 'grid-item preFade';
+                const listBlockItem = document.createElement('div');
+                listBlockItem.className = 'list-block-item preFade';
                 if (style === 'card') {
-                    gridItem.classList.add('style-card');
+                    listBlockItem.classList.add('style-card');
+                } else if (style === 'icons') {
+                    listBlockItem.classList.add('style-icons');
                 }
-                
+
                 const titleWrapper = item.querySelector('.accordion-item__title-wrapper');
                 const descriptionElement = item.querySelector('.accordion-item__description');
-                
+
                 let title = '';
                 let titleTag = 'div'; // Default to div if no header tag is found
                 if (titleWrapper) {
@@ -27,53 +48,55 @@
                 }
 
                 let description = '';
-                let imageUrl = null;
-                let imagePosition = 'before';
+                let iconContent = null;
 
                 if (descriptionElement) {
-                    const paragraphs = descriptionElement.querySelectorAll('p');
-                    const descriptionParts = [];
-
-                    paragraphs.forEach((p, index) => {
-                        const content = p.textContent.trim();
-                        const imageUrlMatch = content.match(/^(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/i);
-
-                        if (imageUrlMatch) {
-                            imageUrl = imageUrlMatch[0].split('?')[0];
-                            if (index === paragraphs.length - 1) {
-                                imagePosition = 'after';
-                            }
+                    const content = descriptionElement.innerHTML;
+                    const imageMatch = content.match(/https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg)/i);
+                    if (imageMatch) {
+                        const imgTag = `<img src="${imageMatch[0]}" alt="${title}" />`;
+                        if (style === 'icons') {
+                            iconContent = imgTag;
+                            description = content.replace(imageMatch[0], '').trim();
                         } else {
-                            descriptionParts.push(content);
+                            description = content.replace(imageMatch[0], imgTag);
                         }
-                    });
+                    } else {
+                        description = content;
+                    }
+                }
 
-                    description = descriptionParts.join(' ');
+                let contentHtml = '';
+                if (style === 'icons') {
+                    contentHtml = `
+                        <div class="list-block-item__content">
+                            ${iconContent ? `<div class="list-block-item__icon">${iconContent}</div>` : ''}
+                            <div class="list-block-item__text-wrapper">
+                                <${titleTag} class="list-block-item__title">${title}</${titleTag}>
+                                <div class="list-block-item__description">${description}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    contentHtml = `
+                        <${titleTag} class="list-block-item__title">${title}</${titleTag}>
+                        <div class="list-block-item__description">${description}</div>
+                    `;
                 }
-                
-                let imageHtml = '';
-                if (imageUrl) {
-                    imageHtml = `<div class="grid-item__image"><img src="${imageUrl}" alt="${title}" /></div>`;
-                }
-                
-                gridItem.innerHTML = `
-                    ${imagePosition === 'before' ? imageHtml : ''}
-                    <${titleTag} class="grid-item__title">${title}</${titleTag}>
-                    <div class="grid-item__description">${description}</div>
-                    ${imagePosition === 'after' ? imageHtml : ''}
-                `;
-                
-                gridContainer.appendChild(gridItem);
+
+                listBlockItem.innerHTML = contentHtml;
+
+                listBlockContainer.appendChild(listBlockItem);
             });
-            
+
             const accordionParent = accordion.closest('.sqs-block-content');
-            
+
             if (accordionParent) {
                 accordionParent.innerHTML = '';
-                accordionParent.appendChild(gridContainer);
-                
+                accordionParent.appendChild(listBlockContainer);
+
                 setTimeout(() => {
-                    gridContainer.querySelectorAll('.preFade').forEach(element => {
+                    listBlockContainer.querySelectorAll('.preFade').forEach(element => {
                         element.classList.add('fadeIn');
                         element.style.opacity = '1';
                     });
@@ -95,7 +118,7 @@
             if (sectionMetaTag) {
                 const columns = sectionMetaTag.getAttribute('columns') || '3';
                 const style = sectionMetaTag.getAttribute('style') || '';
-                transformAccordionToGrid(section, columns, style);
+                transformAccordionToListBlock(section, columns, style);
                 transformedCount++;
             }
         });
@@ -104,7 +127,7 @@
         }
     }
 
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         setTimeout(processSections, 500);
     });
 
