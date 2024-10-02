@@ -1,40 +1,22 @@
 (function () {
-    function cleanSVG(svgString) {
-        // Remove the xmlns attribute
-        svgString = svgString.replace(/\sxmlns="[^"]*"/g, '');
-
-        // Remove any remaining http:="" or www.w3.org="" attributes
-        svgString = svgString.replace(/\s(http:|www\.w3\.org)="[^"]*"/g, '');
-
-        // Remove any remaining id attributes
-        svgString = svgString.replace(/\sid="[^"]*"/g, '');
-
-        // Remove any &gt; at the end of the opening svg tag
-        svgString = svgString.replace(/<svg([^>]*)&gt;/, '<svg$1>');
-
-        return svgString;
-    }
-
-    function transformAccordionToListBlock(section, columnCount, style) {
+    function transformAccordionToListBlock(section, columnCount, styles) {
         const accordion = section.querySelector('.accordion-items-container');
 
         if (accordion) {
             const listBlockContainer = document.createElement('div');
             listBlockContainer.className = `list-block-container accordion-list columns-${columnCount}`;
-            if (style === 'icons') {
-                listBlockContainer.classList.add('style-icons');
-            }
+            styles.forEach(style => {
+                listBlockContainer.classList.add(`style-${style}`);
+            });
 
             const items = accordion.querySelectorAll('.accordion-item');
 
             items.forEach((item) => {
                 const listBlockItem = document.createElement('div');
                 listBlockItem.className = 'list-block-item preFade';
-                if (style === 'card') {
-                    listBlockItem.classList.add('style-card');
-                } else if (style === 'icons') {
-                    listBlockItem.classList.add('style-icons');
-                }
+                styles.forEach(style => {
+                    listBlockItem.classList.add(`style-${style}`);
+                });
 
                 const titleWrapper = item.querySelector('.accordion-item__title-wrapper');
                 const descriptionElement = item.querySelector('.accordion-item__description');
@@ -55,7 +37,7 @@
                     const imageMatch = content.match(/https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg)/i);
                     if (imageMatch) {
                         const imgTag = `<img src="${imageMatch[0]}" alt="${title}" />`;
-                        if (style === 'icons') {
+                        if (styles.includes('icons')) {
                             iconContent = imgTag;
                             description = content.replace(imageMatch[0], '').trim();
                         } else {
@@ -67,7 +49,7 @@
                 }
 
                 let contentHtml = '';
-                if (style === 'icons') {
+                if (styles.includes('icons')) {
                     contentHtml = `
                         <div class="list-block-item__content">
                             ${iconContent ? `<div class="list-block-item__icon">${iconContent}</div>` : ''}
@@ -117,8 +99,9 @@
             const sectionMetaTag = section.querySelector('meta[squarehero-feature="list-block"]');
             if (sectionMetaTag) {
                 const columns = sectionMetaTag.getAttribute('columns') || '3';
-                const style = sectionMetaTag.getAttribute('style') || '';
-                transformAccordionToListBlock(section, columns, style);
+                const stylesAttr = sectionMetaTag.getAttribute('style') || '';
+                const styles = stylesAttr.split(',').map(s => s.trim()).filter(Boolean);
+                transformAccordionToListBlock(section, columns, styles);
                 transformedCount++;
             }
         });
@@ -140,8 +123,9 @@
                         const sectionMetaTag = node.querySelector('meta[squarehero-feature="list-block"]');
                         if (sectionMetaTag) {
                             const columns = sectionMetaTag.getAttribute('columns') || '3';
-                            const style = sectionMetaTag.getAttribute('style') || '';
-                            transformAccordionToGrid(node, columns, style);
+                            const stylesAttr = sectionMetaTag.getAttribute('style') || '';
+                            const styles = stylesAttr.split(',').map(s => s.trim()).filter(Boolean);
+                            transformAccordionToListBlock(node, columns, styles);
                         }
                     }
                 });

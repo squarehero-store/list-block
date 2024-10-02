@@ -7,8 +7,18 @@
 .list-block-container.columns-2 {
   grid-template-columns: repeat(2, 1fr);
 }
+@media (max-width: 768px) {
+  .list-block-container.columns-2 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
 .list-block-container.columns-3 {
   grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 768px) {
+  .list-block-container.columns-3 {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 .list-block-container.style-icons .list-block-item__content {
   display: flex;
