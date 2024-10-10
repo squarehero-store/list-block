@@ -1,3 +1,6 @@
+// ======================================================
+//          SquareHero.store List Block plugin 
+// ======================================================
 (function () {
     function transformAccordionToListBlock(section, columnCount, styles) {
         const accordion = section.querySelector('.accordion-items-container');
@@ -8,6 +11,9 @@
             styles.forEach(style => {
                 listBlockContainer.classList.add(`style-${style}`);
             });
+
+            // Add the new class to the parent .page-section
+            section.classList.add(`list-block-col-${columnCount}`);
 
             const items = accordion.querySelectorAll('.accordion-item');
 
