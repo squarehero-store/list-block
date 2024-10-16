@@ -20,6 +20,14 @@
     grid-template-columns: repeat(1, 1fr);
   }
 }
+.list-block-container.columns-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 768px) {
+  .list-block-container.columns-4 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
 .list-block-container.style-icons .list-block-item__content {
   display: flex;
   align-items: flex-start;
@@ -93,6 +101,9 @@
 }
 .sh-list-block.list-block-col-3 .accordion-items-container {
   grid-template-columns: repeat(3, 1fr);
+}
+.sh-list-block.list-block-col-4 .accordion-items-container {
+  grid-template-columns: repeat(4, 1fr);
 }
 .list-block-item:not(.style-icons) .list-block-item__description img {
   max-width: 100%;
