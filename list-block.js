@@ -12,8 +12,8 @@
                 listBlockContainer.classList.add(`style-${style}`);
             });
 
-            // Add the new class to the parent .page-section
-            section.classList.add(`list-block-col-${columnCount}`);
+            // Add the new classes to the parent .page-section
+            section.classList.add(`list-block-col-${columnCount}`, 'sh-list-block');
 
             const items = accordion.querySelectorAll('.accordion-item');
 
