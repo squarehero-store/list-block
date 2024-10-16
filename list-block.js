@@ -2,18 +2,23 @@
 //          SquareHero.store List Block plugin 
 // ======================================================
 (function () {
-    function transformAccordionToListBlock(section, columnCount, styles) {
-        const accordion = section.querySelector('.accordion-items-container');
+    function transformAccordionToListBlock(section, columnCount, styles, targetSelector) {
+        let accordions;
+        if (targetSelector) {
+            accordions = section.querySelectorAll(targetSelector);
+        } else {
+            accordions = section.querySelectorAll('.sqs-block-accordion');
+        }
 
-        if (accordion) {
+        // Add the new classes to the parent .page-section
+        section.classList.add(`list-block-col-${columnCount}`, 'sh-list-block');
+
+        accordions.forEach(accordion => {
             const listBlockContainer = document.createElement('div');
             listBlockContainer.className = `list-block-container accordion-list columns-${columnCount}`;
             styles.forEach(style => {
                 listBlockContainer.classList.add(`style-${style}`);
             });
-
-            // Add the new classes to the parent .page-section
-            section.classList.add(`list-block-col-${columnCount}`, 'sh-list-block');
 
             const items = accordion.querySelectorAll('.accordion-item');
 
@@ -24,73 +29,42 @@
                     listBlockItem.classList.add(`style-${style}`);
                 });
 
-                const titleWrapper = item.querySelector('.accordion-item__title-wrapper');
+                const titleElement = item.querySelector('.accordion-item__title');
                 const descriptionElement = item.querySelector('.accordion-item__description');
 
-                let title = '';
-                let titleTag = 'div'; // Default to div if no header tag is found
-                if (titleWrapper) {
-                    titleTag = titleWrapper.tagName.toLowerCase();
-                    const titleSpan = titleWrapper.querySelector('.accordion-item__title');
-                    title = titleSpan ? titleSpan.textContent.trim() : titleWrapper.textContent.trim();
+                if (titleElement) {
+                    const titleTag = item.querySelector('.accordion-item__title-wrapper').tagName.toLowerCase();
+                    const newTitleElement = document.createElement(titleTag);
+                    newTitleElement.className = 'list-block-item__title';
+                    newTitleElement.textContent = titleElement.textContent.trim();
+                    listBlockItem.appendChild(newTitleElement);
                 }
-
-                let description = '';
-                let iconContent = null;
 
                 if (descriptionElement) {
-                    const content = descriptionElement.innerHTML;
-                    const imageMatch = content.match(/https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg)/i);
-                    if (imageMatch) {
-                        const imgTag = `<img src="${imageMatch[0]}" alt="${title}" />`;
-                        if (styles.includes('icons')) {
-                            iconContent = imgTag;
-                            description = content.replace(imageMatch[0], '').trim();
-                        } else {
-                            description = content.replace(imageMatch[0], imgTag);
-                        }
-                    } else {
-                        description = content;
-                    }
+                    const newDescriptionElement = document.createElement('div');
+                    newDescriptionElement.className = 'list-block-item__description';
+                    newDescriptionElement.innerHTML = descriptionElement.innerHTML;
+                    listBlockItem.appendChild(newDescriptionElement);
                 }
-
-                let contentHtml = '';
-                if (styles.includes('icons')) {
-                    contentHtml = `
-                        <div class="list-block-item__content">
-                            ${iconContent ? `<div class="list-block-item__icon">${iconContent}</div>` : ''}
-                            <div class="list-block-item__text-wrapper">
-                                <${titleTag} class="list-block-item__title">${title}</${titleTag}>
-                                <div class="list-block-item__description">${description}</div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    contentHtml = `
-                        <${titleTag} class="list-block-item__title">${title}</${titleTag}>
-                        <div class="list-block-item__description">${description}</div>
-                    `;
-                }
-
-                listBlockItem.innerHTML = contentHtml;
 
                 listBlockContainer.appendChild(listBlockItem);
             });
 
-            const accordionParent = accordion.closest('.sqs-block-content');
-
-            if (accordionParent) {
-                accordionParent.innerHTML = '';
-                accordionParent.appendChild(listBlockContainer);
-
-                setTimeout(() => {
-                    listBlockContainer.querySelectorAll('.preFade').forEach(element => {
-                        element.classList.add('fadeIn');
-                        element.style.opacity = '1';
-                    });
-                }, 100);
+            // Replace the accordion content with the new list block
+            const accordionContent = accordion.querySelector('.sqs-block-content');
+            if (accordionContent) {
+                accordionContent.innerHTML = '';
+                accordionContent.appendChild(listBlockContainer);
             }
-        }
+
+            // Add fadeIn effect
+            setTimeout(() => {
+                listBlockContainer.querySelectorAll('.preFade').forEach(element => {
+                    element.classList.add('fadeIn');
+                    element.style.opacity = '1';
+                });
+            }, 100);
+        });
     }
 
     function processSections() {
@@ -107,12 +81,13 @@
                 const columns = sectionMetaTag.getAttribute('columns') || '3';
                 const stylesAttr = sectionMetaTag.getAttribute('style') || '';
                 const styles = stylesAttr.split(',').map(s => s.trim()).filter(Boolean);
-                transformAccordionToListBlock(section, columns, styles);
+                const targetSelector = sectionMetaTag.getAttribute('target');
+                transformAccordionToListBlock(section, columns, styles, targetSelector);
                 transformedCount++;
             }
         });
         if (transformedCount > 0) {
-            console.log(`🚀 SquareHero.store List Block plugin loaded (${transformedCount} block${transformedCount > 1 ? 's' : ''} transformed)`);
+            console.log(`🚀 SquareHero.store List Block plugin loaded (${transformedCount} section${transformedCount > 1 ? 's' : ''} transformed)`);
         }
     }
 
@@ -131,7 +106,8 @@
                             const columns = sectionMetaTag.getAttribute('columns') || '3';
                             const stylesAttr = sectionMetaTag.getAttribute('style') || '';
                             const styles = stylesAttr.split(',').map(s => s.trim()).filter(Boolean);
-                            transformAccordionToListBlock(node, columns, styles);
+                            const targetSelector = sectionMetaTag.getAttribute('target');
+                            transformAccordionToListBlock(node, columns, styles, targetSelector);
                         }
                     }
                 });
