@@ -85,36 +85,6 @@
     grid-template-columns: 1fr;
   }
 }
-/*Show accordion lists when script hasn't run in backend*/
-.sh-list-block .accordion-items-container {
-  display: grid !important;
-  gap: 30px;
-}
-.sh-list-block .accordion-divider {
-  display: none;
-}
-.sh-list-block .accordion-item__click-target {
-  pointer-events: none;
-  padding: 0 !important;
-}
-.sh-list-block .accordion-icon-container {
-  display: none;
-}
-.sh-list-block .accordion-item__dropdown {
-  display: block !important;
-}
-.sh-list-block .accordion-item__description {
-  padding-bottom: 0 !important;
-}
-.sh-list-block.list-block-col-2 .accordion-items-container {
-  grid-template-columns: repeat(2, 1fr);
-}
-.sh-list-block.list-block-col-3 .accordion-items-container {
-  grid-template-columns: repeat(3, 1fr);
-}
-.sh-list-block.list-block-col-4 .accordion-items-container {
-  grid-template-columns: repeat(4, 1fr);
-}
 .list-block-item:not(.style-icons) .list-block-item__description img {
   max-width: 100%;
   height: auto;

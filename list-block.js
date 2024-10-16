@@ -13,6 +13,60 @@
         // Add the new classes to the parent .page-section
         section.classList.add(`list-block-col-${columnCount}`, 'sh-list-block');
 
+        // Create a style element for targeted styles
+        const styleElement = document.createElement('style');
+        let targetedStyles = '';
+
+        let baseStyles = `
+            .accordion-items-container {
+                display: grid !important;
+                gap: 30px;
+                grid-template-columns: repeat(${columnCount}, 1fr);
+            }
+            .accordion-divider {
+                display: none;
+            }
+            .accordion-item__click-target {
+                pointer-events: none;
+                padding: 0 !important;
+            }
+            .accordion-icon-container {
+                display: none;
+            }
+            .accordion-item__dropdown {
+                display: block !important;
+            }
+            .accordion-item__description {
+                padding-bottom: 0 !important;
+            }
+        `;
+
+        // Add padding if card or card-border style is present
+        if (styles.includes('card') || styles.includes('card-border')) {
+            baseStyles += `
+                .accordion-item {
+                    padding: 20px;
+                }
+            `;
+        }
+
+        baseStyles += `
+            @media (max-width: 768px) {
+                .accordion-items-container {
+                    grid-template-columns: 1fr;
+                }
+            }
+        `;
+
+        if (targetSelector) {
+            targetedStyles = `${targetSelector} { ${baseStyles} }`;
+        } else {
+            targetedStyles = `.sh-list-block { ${baseStyles} }`;
+        }
+
+        styleElement.textContent = targetedStyles;
+        document.head.appendChild(styleElement);
+
         accordions.forEach(accordion => {
             const listBlockContainer = document.createElement('div');
             listBlockContainer.className = `list-block-container accordion-list columns-${columnCount}`;
