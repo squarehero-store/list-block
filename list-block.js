@@ -83,23 +83,55 @@
                     listBlockItem.classList.add(`style-${style}`);
                 });
 
-                const titleElement = item.querySelector('.accordion-item__title');
+                const titleWrapper = item.querySelector('.accordion-item__title-wrapper');
                 const descriptionElement = item.querySelector('.accordion-item__description');
 
-                if (titleElement) {
-                    const titleTag = item.querySelector('.accordion-item__title-wrapper').tagName.toLowerCase();
-                    const newTitleElement = document.createElement(titleTag);
-                    newTitleElement.className = 'list-block-item__title';
-                    newTitleElement.textContent = titleElement.textContent.trim();
-                    listBlockItem.appendChild(newTitleElement);
+                let title = '';
+                let titleTag = 'div'; // Default to div if no header tag is found
+                if (titleWrapper) {
+                    titleTag = titleWrapper.tagName.toLowerCase();
+                    const titleSpan = titleWrapper.querySelector('.accordion-item__title');
+                    title = titleSpan ? titleSpan.textContent.trim() : titleWrapper.textContent.trim();
                 }
 
+                let description = '';
+                let iconContent = null;
+
                 if (descriptionElement) {
-                    const newDescriptionElement = document.createElement('div');
-                    newDescriptionElement.className = 'list-block-item__description';
-                    newDescriptionElement.innerHTML = descriptionElement.innerHTML;
-                    listBlockItem.appendChild(newDescriptionElement);
+                    const content = descriptionElement.innerHTML;
+                    const imageMatch = content.match(/https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg)/i);
+                    if (imageMatch) {
+                        const imgTag = `<img src="${imageMatch[0]}" alt="${title}" />`;
+                        if (styles.includes('icons')) {
+                            iconContent = imgTag;
+                            description = content.replace(imageMatch[0], '').trim();
+                        } else {
+                            description = content.replace(imageMatch[0], imgTag);
+                        }
+                    } else {
+                        description = content;
+                    }
                 }
+
+                let contentHtml = '';
+                if (styles.includes('icons')) {
+                    contentHtml = `
+                        <div class="list-block-item__content">
+                            ${iconContent ? `<div class="list-block-item__icon">${iconContent}</div>` : ''}
+                            <div class="list-block-item__text-wrapper">
+                                <${titleTag} class="list-block-item__title">${title}</${titleTag}>
+                                <div class="list-block-item__description">${description}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    contentHtml = `
+                        <${titleTag} class="list-block-item__title">${title}</${titleTag}>
+                        <div class="list-block-item__description">${description}</div>
+                    `;
+                }
+
+                listBlockItem.innerHTML = contentHtml;
 
                 listBlockContainer.appendChild(listBlockItem);
             });
