@@ -2,6 +2,14 @@
 //          SquareHero.store List Block plugin 
 // ======================================================
 (function () {
+    // Add function to apply loading state
+    function applyLoadingState(section) {
+        const accordions = section.querySelectorAll('.sqs-block-accordion');
+        accordions.forEach(accordion => {
+            accordion.classList.add('sh-loading');
+        });
+    }
+
     function transformAccordionToListBlock(section, columnCount, styles, targetSelector) {
         let accordions;
         if (targetSelector) {
@@ -41,7 +49,6 @@
             }
         `;
 
-        // Add padding if card or card-border style is present
         if (styles.includes('card') || styles.includes('card-border')) {
             baseStyles += `
                 .accordion-item {
@@ -87,7 +94,7 @@
                 const descriptionElement = item.querySelector('.accordion-item__description');
 
                 let title = '';
-                let titleTag = 'div'; // Default to div if no header tag is found
+                let titleTag = 'div';
                 if (titleWrapper) {
                     titleTag = titleWrapper.tagName.toLowerCase();
                     const titleSpan = titleWrapper.querySelector('.accordion-item__title');
@@ -132,7 +139,6 @@
                 }
 
                 listBlockItem.innerHTML = contentHtml;
-
                 listBlockContainer.appendChild(listBlockItem);
             });
 
@@ -141,15 +147,57 @@
             if (accordionContent) {
                 accordionContent.innerHTML = '';
                 accordionContent.appendChild(listBlockContainer);
-            }
 
-            // Add fadeIn effect
-            setTimeout(() => {
-                listBlockContainer.querySelectorAll('.preFade').forEach(element => {
-                    element.classList.add('fadeIn');
-                    element.style.opacity = '1';
-                });
-            }, 100);
+                // Check for any images in the list block
+                const images = listBlockContainer.getElementsByTagName('img');
+                const imageCount = images.length;
+                
+                if (imageCount > 0) {
+                    // Keep track of loaded images
+                    let loadedImages = 0;
+                    
+                    const finishLoading = () => {
+                        // Remove loading state and add fadeIn effect only when all images are loaded
+                        accordion.classList.remove('sh-loading');
+                        listBlockContainer.querySelectorAll('.preFade').forEach(element => {
+                            element.classList.add('fadeIn');
+                            element.style.opacity = '1';
+                        });
+                    };
+
+                    // Add load event listener to each image
+                    Array.from(images).forEach(img => {
+                        if (img.complete) {
+                            loadedImages++;
+                            if (loadedImages === imageCount) {
+                                finishLoading();
+                            }
+                        } else {
+                            img.onload = () => {
+                                loadedImages++;
+                                if (loadedImages === imageCount) {
+                                    finishLoading();
+                                }
+                            };
+                            img.onerror = () => {
+                                loadedImages++;
+                                if (loadedImages === imageCount) {
+                                    finishLoading();
+                                }
+                            };
+                        }
+                    });
+                } else {
+                    // If no images, remove loading state immediately
+                    accordion.classList.remove('sh-loading');
+                    setTimeout(() => {
+                        listBlockContainer.querySelectorAll('.preFade').forEach(element => {
+                            element.classList.add('fadeIn');
+                            element.style.opacity = '1';
+                        });
+                    }, 100);
+                }
+            }
         });
     }
 
@@ -161,6 +209,16 @@
 
         const sections = document.querySelectorAll('.page-section');
         let transformedCount = 0;
+
+        // First pass: immediately apply loading state to all sections that will be transformed
+        sections.forEach(section => {
+            const sectionMetaTag = section.querySelector('meta[squarehero-feature="list-block"]');
+            if (sectionMetaTag) {
+                applyLoadingState(section);
+            }
+        });
+
+        // Second pass: transform sections
         sections.forEach(section => {
             const sectionMetaTag = section.querySelector('meta[squarehero-feature="list-block"]');
             if (sectionMetaTag) {
@@ -172,11 +230,26 @@
                 transformedCount++;
             }
         });
+
         if (transformedCount > 0) {
             console.log(`🚀 SquareHero.store List Block plugin loaded (${transformedCount} section${transformedCount > 1 ? 's' : ''} transformed)`);
         }
     }
 
+    // Call init immediately to apply loading states
+    function init() {
+        const sections = document.querySelectorAll('.page-section');
+        sections.forEach(section => {
+            const sectionMetaTag = section.querySelector('meta[squarehero-feature="list-block"]');
+            if (sectionMetaTag) {
+                applyLoadingState(section);
+            }
+        });
+    }
+
+    init();
+
+    // Then proceed with normal initialization
     window.addEventListener('load', function () {
         setTimeout(processSections, 500);
     });
@@ -189,6 +262,9 @@
                     if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('page-section')) {
                         const sectionMetaTag = node.querySelector('meta[squarehero-feature="list-block"]');
                         if (sectionMetaTag) {
+                            // Apply loading state immediately for new sections
+                            applyLoadingState(node);
+                            
                             const columns = sectionMetaTag.getAttribute('columns') || '3';
                             const stylesAttr = sectionMetaTag.getAttribute('style') || '';
                             const styles = stylesAttr.split(',').map(s => s.trim()).filter(Boolean);

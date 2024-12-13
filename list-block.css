@@ -1,3 +1,33 @@
+.sh-loading {
+  min-height: 100px;
+  position: relative;
+}
+.sh-loading > * {
+  opacity: 0;
+}
+.sh-loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #555;
+  border-radius: 50%;
+  animation: sh-spin 1s linear infinite;
+  z-index: 1;
+  opacity: 1;
+}
+@keyframes sh-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
 .list-block-container {
   display: grid;
   gap: 30px;
@@ -31,6 +61,11 @@
 .list-block-container .list-block-item {
   border-radius: 5px;
   overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+.list-block-container .list-block-item.fadeIn {
+  opacity: 1;
 }
 .list-block-container .list-block-item__icon {
   flex-shrink: 0;
